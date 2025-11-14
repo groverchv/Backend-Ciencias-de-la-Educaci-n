@@ -1,5 +1,4 @@
 package com.uagrm.ciencias_de_la_educacion.Model;
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,26 +6,20 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
 
 @Entity
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-@Table(name = "usuario")
-public class UsuarioEntity {
+@Table(name = "contenido")
+public class ContenidoEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String nombre;
-    private String apellido;
-    @Column(unique = true, nullable = false)
-    private String correo;
-    @Column(nullable = false)
-    private String password;
+    private Integer orden;
     private Boolean estado = true;
+
 
     @Column(name = "created_at", updatable = false)
     @Temporal(TemporalType.TIMESTAMP)
@@ -40,10 +33,27 @@ public class UsuarioEntity {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
-  
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "usuario_roles", joinColumns = @JoinColumn(name = "usuario_id"))
-    @Column(name = "rol")
-    private Set<String> roles = new HashSet<>();
+    @ManyToOne
+    @JoinColumn(name = "sub_menu_id")
+    private Sub_MenuEntity sub_menu_id;
+
+    @ManyToOne
+    @JoinColumn(name = "titulo_id")
+    private TituloEntity titulo_id;
+
+    @ManyToOne
+    @JoinColumn(name = "archivo_id")
+    private ArchivoEntity archivo_id;
+    
+    @ManyToOne
+    @JoinColumn(name = "sub_titulo_id")
+    private Sub_TituloEntity sub_titulo_id; 
+
+    @ManyToOne
+    @JoinColumn(name = "texto_id")
+    private TextoEntity texto_id;
+
+
 }
+

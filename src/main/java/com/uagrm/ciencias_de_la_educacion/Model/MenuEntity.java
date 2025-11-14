@@ -7,26 +7,23 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
 
 @Entity
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-@Table(name = "usuario")
-public class UsuarioEntity {
-    @Id
+@Table(name = "menu")
+public class MenuEntity {
+     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String nombre;
-    private String apellido;
-    @Column(unique = true, nullable = false)
-    private String correo;
-    @Column(nullable = false)
-    private String password;
+    private String titulo;
+    private String ruta;
+    private String icono;
+    private Integer orden;
     private Boolean estado = true;
+
 
     @Column(name = "created_at", updatable = false)
     @Temporal(TemporalType.TIMESTAMP)
@@ -40,10 +37,8 @@ public class UsuarioEntity {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
-  
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "usuario_roles", joinColumns = @JoinColumn(name = "usuario_id"))
-    @Column(name = "rol")
-    private Set<String> roles = new HashSet<>();
+    @ManyToOne
+    @JoinColumn(name = "usuario_id")
+    private UsuarioEntity usuario_id;
 }

@@ -13,7 +13,7 @@ import java.time.Instant;
 @NoArgsConstructor
 @Table(name = "refresh_token")
 public class RefreshToken {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
