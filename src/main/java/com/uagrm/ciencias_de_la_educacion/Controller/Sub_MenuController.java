@@ -45,6 +45,10 @@ public class Sub_MenuController {
         sub_Menu.setIcono(sub_MenuDetails.getIcono());
         sub_Menu.setOrden(sub_MenuDetails.getOrden());
         sub_Menu.setEstado(sub_MenuDetails.getEstado());
+        
+        if (sub_MenuDetails.getUsuario_id() != null) {
+            sub_Menu.setUsuario_id(sub_MenuDetails.getUsuario_id());
+        }
 
         Sub_MenuEntity updatedSubMenu = sub_MenuService.saveSubMenu(sub_Menu);
         return updatedSubMenu;

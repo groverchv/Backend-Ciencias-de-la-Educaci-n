@@ -43,6 +43,6 @@ public class Sub_MenuEntity {
     private UsuarioEntity usuario_id;
 
     @ManyToOne
-    @JoinColumn(name = "sub_menu_id")
-    private Sub_MenuEntity sub_menu_id;
+    @JoinColumn(name = "menu_id")
+    private MenuEntity menu_id;
 }
