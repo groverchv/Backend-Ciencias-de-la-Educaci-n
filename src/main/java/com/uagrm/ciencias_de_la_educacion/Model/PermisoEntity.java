@@ -11,14 +11,16 @@ import lombok.ToString;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-@Table(name = "archivo")
-public class ArchivoEntity {
+@Table(name = "permiso")
+public class PermisoEntity {
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    
+    @Column(unique = true, nullable = false)
     private String nombre;
-    private String descripcion;
-    private String url;
+    
+    @Column(nullable = false)
     private Boolean estado = true;
-
 }

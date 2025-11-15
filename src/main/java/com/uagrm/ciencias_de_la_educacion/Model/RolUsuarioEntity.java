@@ -11,15 +11,18 @@ import lombok.ToString;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-@Table(name = "titulo")
-public class TituloEntity {
+@Table(name = "rol_usuario")
+public class RolUsuarioEntity {
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    private String nombre;
-    private Boolean estado = true;
-
-  
     
+    @ManyToOne
+    @JoinColumn(name = "rol_id", nullable = false)
+    private RolEntity rol;
+    
+    @ManyToOne
+    @JoinColumn(name = "usuario_id", nullable = false)
+    private UsuarioEntity usuario;
 }
