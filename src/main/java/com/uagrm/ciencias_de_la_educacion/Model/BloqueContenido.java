@@ -9,6 +9,8 @@ import lombok.ToString;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @Entity
@@ -37,9 +39,20 @@ public class BloqueContenido {
     @Column(name = "datos_json", columnDefinition = "jsonb")
     private Map<String, Object> datosJson;
 
-    // Relación ManyToOne con Sub_MenuEntity
+    // Relación ManyToOne con ContenidoEntity
+    // Ahora los bloques pertenecen a un Contenido, no directamente a SubMenu
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sub_menu_id", nullable = false)
-    private Sub_MenuEntity subMenu;
+    @JoinColumn(name = "contenido_id", nullable = false)
+    private ContenidoEntity contenido;
+
+    // Relación parent-child para estructura jerárquica
+    // Un bloque puede tener un bloque padre (por ejemplo, un subtítulo)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_bloque_id")
+    private BloqueContenido parentBloque;
+
+    // Un bloque puede tener múltiples bloques hijos
+    @OneToMany(mappedBy = "parentBloque", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<BloqueContenido> childBloques = new ArrayList<>();
 }

@@ -10,16 +10,9 @@ import java.util.List;
 @Repository
 public interface BloqueContenidoRepository extends JpaRepository<BloqueContenido, Long> {
 
-    /**
-     * Devuelve todos los bloques de un SubMenu, ordenados por 'orden'.
-     * Como el campo en BloqueContenido es "subMenu" (que apunta a Sub_MenuEntity),
-     * Spring Data JPA usa subMenu_Id para acceder al ID del SubMenu
-     */
-    List<BloqueContenido> findBySubMenu_IdOrderByOrdenAsc(Long subMenuId);
+    // Buscar bloques por contenido_id ordenados por orden
+    List<BloqueContenido> findByContenido_IdOrderByOrdenAsc(Long contenidoId);
 
-    /**
-     * Borra todos los bloques asociados a un SubMenu.
-     * Esto se usará dentro de una transacción.
-     */
-    void deleteBySubMenu_Id(Long subMenuId);
+    // Eliminar todos los bloques de un contenido
+    void deleteByContenido_Id(Long contenidoId);
 }

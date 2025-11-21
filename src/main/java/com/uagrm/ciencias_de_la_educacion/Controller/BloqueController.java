@@ -17,25 +17,24 @@ public class BloqueController {
     private BloqueService bloqueService;
 
     /**
-     * GET /api/sub_menu/{id}/bloques
-     * Obtiene todos los bloques de una página (SubMenu)
+     * GET /api/contenido/{id}/bloques
+     * Obtiene todos los bloques de un Contenido específico
      */
-    @GetMapping("/sub_menu/{id}/bloques")
-    public ResponseEntity<List<BloqueContenido>> getBloquesPorSubMenu(@PathVariable("id") Long subMenuId) {
-        List<BloqueContenido> bloques = bloqueService.getBloquesPorSubMenu(subMenuId);
+    @GetMapping("/contenido/{id}/bloques")
+    public ResponseEntity<List<BloqueContenido>> getBloquesByContenido(@PathVariable("id") Long contenidoId) {
+        List<BloqueContenido> bloques = bloqueService.getBloquesPorContenido(contenidoId);
         return ResponseEntity.ok(bloques);
     }
 
     /**
-     * POST /api/sub_menu/{id}/bloques
-     * Guarda (sobrescribe) todos los bloques de una página (SubMenu)
+     * POST /api/contenido/{id}/bloques
+     * Guarda todos los bloques de un Contenido (reemplaza los existentes)
      */
-    @PostMapping("/sub_menu/{id}/bloques")
-    public ResponseEntity<Void> saveBloques(
-            @PathVariable("id") Long subMenuId,
-            @RequestBody BloqueSaveRequestDTO request
-    ) {
-        bloqueService.saveBloquesParaSubMenu(subMenuId, request);
-        return ResponseEntity.ok().build();
+    @PostMapping("/contenido/{id}/bloques")
+    public ResponseEntity<String> saveBloques(
+            @PathVariable("id") Long contenidoId,
+            @RequestBody BloqueSaveRequestDTO request) {
+        bloqueService.saveBloquesParaContenido(contenidoId, request);
+        return ResponseEntity.ok("Bloques guardados exitosamente");
     }
 }

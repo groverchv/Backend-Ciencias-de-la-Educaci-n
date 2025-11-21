@@ -3,9 +3,9 @@ package com.uagrm.ciencias_de_la_educacion.Service;
 import com.uagrm.ciencias_de_la_educacion.DTO.BloqueDTO;
 import com.uagrm.ciencias_de_la_educacion.DTO.BloqueSaveRequestDTO;
 import com.uagrm.ciencias_de_la_educacion.Model.BloqueContenido;
-import com.uagrm.ciencias_de_la_educacion.Model.Sub_MenuEntity;
+import com.uagrm.ciencias_de_la_educacion.Model.ContenidoEntity;
 import com.uagrm.ciencias_de_la_educacion.Repository.BloqueContenidoRepository;
-import com.uagrm.ciencias_de_la_educacion.Repository.Sub_MenuRepository;
+import com.uagrm.ciencias_de_la_educacion.Repository.ContenidoRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,39 +21,39 @@ public class BloqueService {
     private BloqueContenidoRepository bloqueRepo;
 
     @Autowired
-    private Sub_MenuRepository subMenuRepo;
+    private ContenidoRepository contenidoRepo;
 
     /**
-     * Endpoint 1: Obtener todos los bloques de una página
+     * Obtener todos los bloques de un Contenido
      */
     @Transactional(readOnly = true)
-    public List<BloqueContenido> getBloquesPorSubMenu(Long subMenuId) {
-        return bloqueRepo.findBySubMenu_IdOrderByOrdenAsc(subMenuId);
+    public List<BloqueContenido> getBloquesPorContenido(Long contenidoId) {
+        return bloqueRepo.findByContenido_IdOrderByOrdenAsc(contenidoId);
     }
 
     /**
-     * Endpoint 2: Guardar todos los bloques de una página (Delete-then-Insert)
+     * Guardar todos los bloques de un Contenido (Delete-then-Insert)
      */
     @Transactional
-    public void saveBloquesParaSubMenu(Long subMenuId, BloqueSaveRequestDTO request) {
-        // 1. Busca la entidad SubMenu (Padre)
-        Sub_MenuEntity subMenu = subMenuRepo.findById(subMenuId)
-                .orElseThrow(() -> new EntityNotFoundException("SubMenu no encontrado con id: " + subMenuId));
+    public void saveBloquesParaContenido(Long contenidoId, BloqueSaveRequestDTO request) {
+        // 1. Busca la entidad Contenido (Padre)
+        ContenidoEntity contenido = contenidoRepo.findById(contenidoId)
+                .orElseThrow(() -> new EntityNotFoundException("Contenido no encontrado con id: " + contenidoId));
 
-        // 2. BORRA todos los bloques antiguos para este SubMenu
-        bloqueRepo.deleteBySubMenu_Id(subMenuId);
+        // 2. BORRA todos los bloques antiguos para este Contenido
+        bloqueRepo.deleteByContenido_Id(contenidoId);
 
         // 3. CREA los nuevos bloques desde el DTO
         List<BloqueContenido> nuevosBloques = new ArrayList<>();
 
         for (BloqueDTO dto : request.getBloques()) {
             BloqueContenido nuevoBloque = new BloqueContenido();
-            nuevoBloque.setSubMenu(subMenu); // Enlaza al padre
+            nuevoBloque.setContenido(contenido); // Enlaza al Contenido
             nuevoBloque.setOrden(dto.getOrden());
             nuevoBloque.setTipoBloque(dto.getTipoBloque());
             nuevoBloque.setDatosJson(dto.getDatosJson());
             nuevoBloque.setEstado(dto.getEstado() != null ? dto.getEstado() : true);
-            
+
             nuevosBloques.add(nuevoBloque);
         }
 
