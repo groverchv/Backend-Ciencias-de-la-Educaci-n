@@ -67,7 +67,7 @@ public class ContenidoController {
 
     /**
      * PUT /api/contenido/{id}
-     * Actualiza el título o estado de un contenido
+     * Actualiza el título, estado o contenido HTML de un contenido
      */
     @PutMapping("/contenido/{id}")
     public ResponseEntity<ContenidoEntity> updateContenido(
@@ -75,8 +75,9 @@ public class ContenidoController {
             @RequestBody Map<String, Object> updates) {
         String titulo = (String) updates.get("titulo");
         Boolean estado = (Boolean) updates.get("estado");
+        String contenidoHtml = (String) updates.get("contenidoHtml");
 
-        ContenidoEntity contenido = contenidoService.updateContenido(id, titulo, estado);
+        ContenidoEntity contenido = contenidoService.updateContenido(id, titulo, estado, contenidoHtml);
         return ResponseEntity.ok(contenido);
     }
 

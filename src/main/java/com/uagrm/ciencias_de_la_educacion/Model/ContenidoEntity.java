@@ -39,6 +39,10 @@ public class ContenidoEntity {
     @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime updatedAt = LocalDateTime.now();
 
+    // Campo para contenido de texto enriquecido (editor tipo Word)
+    @Column(name = "contenido_html", columnDefinition = "TEXT")
+    private String contenidoHtml;
+
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();

@@ -73,10 +73,10 @@ public class ContenidoService {
     }
 
     /**
-     * Actualizar un contenido (solo título y estado)
+     * Actualizar un contenido (título, estado y contenido HTML)
      */
     @Transactional
-    public ContenidoEntity updateContenido(Long id, String titulo, Boolean estado) {
+    public ContenidoEntity updateContenido(Long id, String titulo, Boolean estado, String contenidoHtml) {
         ContenidoEntity contenido = getContenidoById(id);
 
         if (titulo != null) {
@@ -84,6 +84,9 @@ public class ContenidoService {
         }
         if (estado != null) {
             contenido.setEstado(estado);
+        }
+        if (contenidoHtml != null) {
+            contenido.setContenidoHtml(contenidoHtml);
         }
 
         return contenidoRepository.save(contenido);
