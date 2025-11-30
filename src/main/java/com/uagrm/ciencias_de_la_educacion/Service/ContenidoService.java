@@ -37,7 +37,7 @@ public class ContenidoService {
             dto.setOrden(c.getOrden());
             dto.setEstado(c.getEstado());
             dto.setSubMenuId(c.getSubMenu().getId());
-            dto.setBloqueCount(c.getBloques() != null ? c.getBloques().size() : 0);
+            dto.setBloqueCount(0); // BloqueContenido was removed
             return dto;
         }).collect(Collectors.toList());
     }

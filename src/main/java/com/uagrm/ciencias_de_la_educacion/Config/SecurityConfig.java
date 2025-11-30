@@ -62,7 +62,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        
+
         // Configurar origins
         String origins = corsConfig.getAllowed().getOrigins();
         if ("*".equals(origins)) {
@@ -70,11 +70,11 @@ public class SecurityConfig {
         } else {
             configuration.setAllowedOrigins(Arrays.asList(origins.split(",")));
         }
-        
+
         // Configurar métodos
         String methods = corsConfig.getAllowed().getMethods();
         configuration.setAllowedMethods(Arrays.asList(methods.split(",")));
-        
+
         // Configurar headers
         String headers = corsConfig.getAllowed().getHeaders();
         if ("*".equals(headers)) {
@@ -82,16 +82,16 @@ public class SecurityConfig {
         } else {
             configuration.setAllowedHeaders(Arrays.asList(headers.split(",")));
         }
-        
+
         // Headers expuestos
         String exposedHeaders = corsConfig.getExposed().getHeaders();
         if (exposedHeaders != null && !exposedHeaders.isEmpty()) {
             configuration.setExposedHeaders(Arrays.asList(exposedHeaders.split(",")));
         }
-        
+
         // Credentials
         configuration.setAllowCredentials(corsConfig.getAllow().getCredentials());
-        
+
         // Max Age
         configuration.setMaxAge(corsConfig.getMax().getAge());
 
@@ -103,21 +103,31 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .csrf(csrf -> csrf.disable())
-            .exceptionHandling(exception -> exception
-                .authenticationEntryPoint(unauthorizedHandler))
-            .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/public/**").permitAll()
-                .requestMatchers("/api/menus/activos").permitAll()
-                .requestMatchers("/api/menus/**").authenticated()
-                .requestMatchers("/api/contenidos/ruta").permitAll()
-                .requestMatchers("/api/contenidos/**").authenticated()
-                .anyRequest().authenticated()
-            );
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(csrf -> csrf.disable())
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(unauthorizedHandler))
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/public/**").permitAll()
+                        // Menus - Allow GET for public navigation
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/menu/**").permitAll()
+                        .requestMatchers("/api/menu/**").authenticated()
+                        // SubMenus - Allow GET for public navigation
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/sub_menu/**").permitAll()
+                        .requestMatchers("/api/sub_menu/**").authenticated()
+                        // Presentacion - Allow GET for slider
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/presentacion/**").permitAll()
+                        .requestMatchers("/api/presentacion/**").authenticated()
+                        // Contenidos
+                        .requestMatchers("/api/contenidos/ruta").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/contenidos/**").permitAll()
+                        .requestMatchers("/api/contenidos/**").authenticated()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/contenido/**").permitAll() // Singular
+                        .requestMatchers("/api/contenido/**").authenticated()
+                        .anyRequest().authenticated());
 
         http.authenticationProvider(authenticationProvider());
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

@@ -7,8 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Data
@@ -57,8 +55,4 @@ public class ContenidoEntity {
     @ManyToOne
     @JoinColumn(name = "usuario_id")
     private UsuarioEntity usuario;
-
-    // Bloques de contenido (un contenido tiene muchos bloques)
-    @OneToMany(mappedBy = "contenido", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<BloqueContenido> bloques = new ArrayList<>();
 }
