@@ -8,9 +8,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
-import java.util.Set;
-
 @Component
 public class DataLoader implements CommandLineRunner {
 
@@ -89,10 +86,6 @@ public class DataLoader implements CommandLineRunner {
             admin.setPassword(passwordEncoder.encode("admin123"));
             admin.setEstado(true);
 
-            Set<String> roles = new HashSet<>();
-            roles.add("ADMIN");
-            admin.setRoles(roles);
-
             admin = usuarioRepository.save(admin);
 
             // Asignar rol de Administrador en la tabla Rol_Usuario
@@ -116,10 +109,6 @@ public class DataLoader implements CommandLineRunner {
             usuario.setCorreo("usuario@ciencias.uagrm.edu.bo");
             usuario.setPassword(passwordEncoder.encode("usuario123"));
             usuario.setEstado(true);
-
-            Set<String> roles = new HashSet<>();
-            roles.add("USER");
-            usuario.setRoles(roles);
 
             usuario = usuarioRepository.save(usuario);
 

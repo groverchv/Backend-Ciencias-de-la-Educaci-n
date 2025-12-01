@@ -1,6 +1,8 @@
 package com.uagrm.ciencias_de_la_educacion.Security;
 
+import com.uagrm.ciencias_de_la_educacion.Model.RolUsuarioEntity;
 import com.uagrm.ciencias_de_la_educacion.Model.UsuarioEntity;
+import com.uagrm.ciencias_de_la_educacion.Repository.RolUsuarioRepository;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,13 +11,14 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserDetailsImpl implements UserDetails {
-    
+
     private Long id;
     private String nombre;
     private String apellido;
@@ -24,9 +27,11 @@ public class UserDetailsImpl implements UserDetails {
     private Boolean estado;
     private Collection<? extends GrantedAuthority> authorities;
 
-    public static UserDetailsImpl build(UsuarioEntity usuario) {
-        Collection<GrantedAuthority> authorities = usuario.getRoles().stream()
-                .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
+    public static UserDetailsImpl build(UsuarioEntity usuario, RolUsuarioRepository rolUsuarioRepository) {
+        List<RolUsuarioEntity> rolUsuarios = rolUsuarioRepository.findByUsuarioId(usuario.getId());
+
+        Collection<GrantedAuthority> authorities = rolUsuarios.stream()
+                .map(rolUsuario -> new SimpleGrantedAuthority("ROLE_" + rolUsuario.getRol().getNombre()))
                 .collect(Collectors.toList());
 
         return new UserDetailsImpl(
@@ -36,8 +41,7 @@ public class UserDetailsImpl implements UserDetails {
                 usuario.getCorreo(),
                 usuario.getPassword(),
                 usuario.getEstado(),
-                authorities
-        );
+                authorities);
     }
 
     @Override

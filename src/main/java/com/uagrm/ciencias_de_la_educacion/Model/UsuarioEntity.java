@@ -40,10 +40,5 @@ public class UsuarioEntity {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
-  
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "usuario_roles", joinColumns = @JoinColumn(name = "usuario_id"))
-    @Column(name = "rol")
-    private Set<String> roles = new HashSet<>();
 }

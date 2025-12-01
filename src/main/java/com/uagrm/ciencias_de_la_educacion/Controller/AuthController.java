@@ -2,7 +2,11 @@ package com.uagrm.ciencias_de_la_educacion.Controller;
 
 import com.uagrm.ciencias_de_la_educacion.DTO.*;
 import com.uagrm.ciencias_de_la_educacion.Model.RefreshToken;
+import com.uagrm.ciencias_de_la_educacion.Model.RolEntity;
+import com.uagrm.ciencias_de_la_educacion.Model.RolUsuarioEntity;
 import com.uagrm.ciencias_de_la_educacion.Model.UsuarioEntity;
+import com.uagrm.ciencias_de_la_educacion.Repository.RolRepository;
+import com.uagrm.ciencias_de_la_educacion.Repository.RolUsuarioRepository;
 import com.uagrm.ciencias_de_la_educacion.Repository.UsuarioRepository;
 import com.uagrm.ciencias_de_la_educacion.Security.JwtTokenProvider;
 import com.uagrm.ciencias_de_la_educacion.Security.UserDetailsImpl;
@@ -18,7 +22,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -42,15 +45,19 @@ public class AuthController {
     @Autowired
     private RefreshTokenService refreshTokenService;
 
+    @Autowired
+    private RolUsuarioRepository rolUsuarioRepository;
+
+    @Autowired
+    private RolRepository rolRepository;
+
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             loginRequest.getCorreo(),
-                            loginRequest.getPassword()
-                    )
-            );
+                            loginRequest.getPassword()));
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
             String jwt = jwtTokenProvider.generateToken(authentication);
@@ -70,8 +77,7 @@ public class AuthController {
                     userDetails.getCorreo(),
                     userDetails.getNombre(),
                     userDetails.getApellido(),
-                    roles
-            ));
+                    roles));
         } catch (Exception e) {
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
@@ -87,17 +93,16 @@ public class AuthController {
                 .map(refreshTokenService::verifyExpiration)
                 .map(RefreshToken::getUsuario)
                 .map(usuario -> {
-                    UserDetailsImpl userDetails = UserDetailsImpl.build(usuario);
-                    
+                    UserDetailsImpl userDetails = UserDetailsImpl.build(usuario, rolUsuarioRepository);
+
                     // Crear autenticación temporal para generar el nuevo token
                     Authentication authentication = new UsernamePasswordAuthenticationToken(
                             userDetails,
                             null,
-                            userDetails.getAuthorities()
-                    );
-                    
+                            userDetails.getAuthorities());
+
                     String token = jwtTokenProvider.generateToken(authentication);
-                    
+
                     List<String> roles = userDetails.getAuthorities().stream()
                             .map(GrantedAuthority::getAuthority)
                             .collect(Collectors.toList());
@@ -109,8 +114,7 @@ public class AuthController {
                             userDetails.getCorreo(),
                             userDetails.getNombre(),
                             userDetails.getApellido(),
-                            roles
-                    ));
+                            roles));
                 })
                 .orElseThrow(() -> new RuntimeException("Refresh token no encontrado"));
     }
@@ -131,15 +135,31 @@ public class AuthController {
         usuario.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
         usuario.setEstado(true);
 
-        // Asignar roles
-        if (registerRequest.getRoles() == null || registerRequest.getRoles().isEmpty()) {
-            usuario.setRoles(new HashSet<>());
-            usuario.getRoles().add("USER");
-        } else {
-            usuario.setRoles(registerRequest.getRoles());
-        }
+        // Guardar usuario primero
+        usuario = usuarioRepository.save(usuario);
 
-        usuarioRepository.save(usuario);
+        // Crear asignaciones de roles en la tabla RolUsuario
+        if (registerRequest.getRoles() == null || registerRequest.getRoles().isEmpty()) {
+            // Asignar rol USUARIO por defecto
+            RolEntity userRole = rolRepository.findByNombre("USUARIO").orElse(null);
+            if (userRole != null) {
+                RolUsuarioEntity rolUsuario = new RolUsuarioEntity();
+                rolUsuario.setUsuario(usuario);
+                rolUsuario.setRol(userRole);
+                rolUsuarioRepository.save(rolUsuario);
+            }
+        } else {
+            // Asignar roles especificados
+            for (String rolNombre : registerRequest.getRoles()) {
+                RolEntity rol = rolRepository.findByNombre(rolNombre).orElse(null);
+                if (rol != null) {
+                    RolUsuarioEntity rolUsuario = new RolUsuarioEntity();
+                    rolUsuario.setUsuario(usuario);
+                    rolUsuario.setRol(rol);
+                    rolUsuarioRepository.save(rolUsuario);
+                }
+            }
+        }
 
         return ResponseEntity.ok(new MessageResponse("Usuario registrado exitosamente"));
     }
@@ -147,7 +167,7 @@ public class AuthController {
     @GetMapping("/validate")
     public ResponseEntity<?> validateToken() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        
+
         if (authentication != null && authentication.isAuthenticated()) {
             UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
             List<String> roles = userDetails.getAuthorities().stream()
@@ -161,10 +181,9 @@ public class AuthController {
                     userDetails.getCorreo(),
                     userDetails.getNombre(),
                     userDetails.getApellido(),
-                    roles
-            ));
+                    roles));
         }
-        
+
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
                 .body(new MessageResponse("Token inválido o expirado"));
@@ -179,4 +198,3 @@ public class AuthController {
         return ResponseEntity.ok(new MessageResponse("Logout exitoso"));
     }
 }
-

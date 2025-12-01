@@ -24,7 +24,8 @@ public class UsuarioService {
     public UsuarioEntity guardarUsuario(UsuarioEntity usuario) {
         // Encriptar la contraseña antes de guardar si es una nueva contraseña
         if (usuario.getPassword() != null && !usuario.getPassword().isEmpty()) {
-            // Solo encriptar si no está ya encriptada (BCrypt empieza con $2a$, $2b$, o $2y$)
+            // Solo encriptar si no está ya encriptada (BCrypt empieza con $2a$, $2b$, o
+            // $2y$)
             if (!usuario.getPassword().startsWith("$2")) {
                 usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
             }
@@ -46,7 +47,7 @@ public class UsuarioService {
             usuarioExistente.setNombre(usuarioDetalles.getNombre());
             usuarioExistente.setApellido(usuarioDetalles.getApellido());
             usuarioExistente.setCorreo(usuarioDetalles.getCorreo());
-            
+
             // Solo actualizar la contraseña si se proporciona una nueva
             if (usuarioDetalles.getPassword() != null && !usuarioDetalles.getPassword().isEmpty()) {
                 // Solo encriptar si no está ya encriptada
@@ -54,14 +55,9 @@ public class UsuarioService {
                     usuarioExistente.setPassword(passwordEncoder.encode(usuarioDetalles.getPassword()));
                 }
             }
-            
+
             usuarioExistente.setEstado(usuarioDetalles.getEstado());
-            
-            // Actualizar roles si se proporcionan
-            if (usuarioDetalles.getRoles() != null && !usuarioDetalles.getRoles().isEmpty()) {
-                usuarioExistente.setRoles(usuarioDetalles.getRoles());
-            }
-            
+
             return usuarioRepository.save(usuarioExistente);
         }
         return null;
