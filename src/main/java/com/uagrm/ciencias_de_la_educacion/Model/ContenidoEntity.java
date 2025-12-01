@@ -37,9 +37,15 @@ public class ContenidoEntity {
     @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime updatedAt = LocalDateTime.now();
 
-    // Campo para contenido de texto enriquecido (editor tipo Word)
+    // Campo para contenido de texto enriquecido (editor tipo Word) - BORRADOR
+    @Lob
     @Column(name = "contenido_html", columnDefinition = "TEXT")
     private String contenidoHtml;
+
+    // Campo para contenido publicado (visible al público)
+    @Lob
+    @Column(name = "contenido_publicado", columnDefinition = "TEXT")
+    private String contenidoPublicado;
 
     @PreUpdate
     protected void onUpdate() {

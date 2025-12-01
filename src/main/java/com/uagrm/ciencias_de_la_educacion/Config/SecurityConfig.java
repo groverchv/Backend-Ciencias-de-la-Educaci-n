@@ -112,6 +112,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/public/**").permitAll()
+                        .requestMatchers("/api/visitas/**").permitAll() // Allow visit tracking for all users
                         // Menus - Allow GET for public navigation
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/menu/**").permitAll()
                         .requestMatchers("/api/menu/**").authenticated()

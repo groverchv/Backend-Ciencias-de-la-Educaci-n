@@ -74,6 +74,8 @@ public class ContenidoService {
 
     /**
      * Actualizar un contenido (título, estado y contenido HTML)
+     * Cuando se publica (estado = true), copia el contenidoHtml a
+     * contenidoPublicado
      */
     @Transactional
     public ContenidoEntity updateContenido(Long id, String titulo, Boolean estado, String contenidoHtml) {
@@ -82,11 +84,19 @@ public class ContenidoService {
         if (titulo != null) {
             contenido.setTitulo(titulo);
         }
-        if (estado != null) {
-            contenido.setEstado(estado);
-        }
+
         if (contenidoHtml != null) {
             contenido.setContenidoHtml(contenidoHtml);
+        }
+
+        if (estado != null) {
+            contenido.setEstado(estado);
+
+            // Si se está publicando (estado = true), copiar el borrador al contenido
+            // publicado
+            if (estado == true) {
+                contenido.setContenidoPublicado(contenido.getContenidoHtml());
+            }
         }
 
         return contenidoRepository.save(contenido);
