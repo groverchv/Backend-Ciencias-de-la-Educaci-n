@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -171,5 +174,107 @@ public class BackupController {
         status.put("timestamp", LocalDateTime.now());
         
         return ResponseEntity.ok(status);
+    }
+    
+    /**
+     * Listar todos los backups disponibles
+     */
+    @GetMapping("/list")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> listBackups() {
+        try {
+            var backups = backupService.listBackups();
+            return ResponseEntity.ok(backups);
+        } catch (Exception e) {
+            log.error("Error al listar backups: {}", e.getMessage(), e);
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Error al listar backups: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
+    }
+    
+    /**
+     * Descargar un backup específico por nombre
+     */
+    @GetMapping("/download/{fileName}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> downloadSpecificBackup(@PathVariable String fileName) {
+        try {
+            log.info("Descargando backup: {}", fileName);
+            
+            // Validar nombre de archivo
+            if (!fileName.endsWith(".sql")) {
+                Map<String, String> error = new HashMap<>();
+                error.put("error", "Nombre de archivo inválido");
+                return ResponseEntity.badRequest().body(error);
+            }
+            
+            Path backupFile = Paths.get(backupService.listBackups().stream()
+                .filter(b -> b.getFileName().equals(fileName))
+                .findFirst()
+                .orElseThrow(() -> new IOException("Backup no encontrado"))
+                .getFilePath());
+            
+            byte[] backupData = Files.readAllBytes(backupFile);
+            ByteArrayResource resource = new ByteArrayResource(backupData);
+            
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .contentLength(backupData.length)
+                    .body(resource);
+                    
+        } catch (IOException e) {
+            log.error("Error al descargar backup: {}", e.getMessage(), e);
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Error al descargar backup: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+        } catch (Exception e) {
+            log.error("Error inesperado: {}", e.getMessage(), e);
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Error inesperado: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
+    }
+    
+    /**
+     * Eliminar un backup específico
+     */
+    @DeleteMapping("/{fileName}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<String, String>> deleteBackup(@PathVariable String fileName) {
+        Map<String, String> response = new HashMap<>();
+        try {
+            log.info("Eliminando backup: {}", fileName);
+            
+            // Validar nombre de archivo
+            if (!fileName.endsWith(".sql")) {
+                response.put("error", "Nombre de archivo inválido");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            Path backupFile = Paths.get(backupService.listBackups().stream()
+                .filter(b -> b.getFileName().equals(fileName))
+                .findFirst()
+                .orElseThrow(() -> new IOException("Backup no encontrado"))
+                .getFilePath());
+            
+            Files.delete(backupFile);
+            
+            response.put("message", "Backup eliminado exitosamente");
+            response.put("fileName", fileName);
+            log.info("Backup eliminado: {}", fileName);
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (IOException e) {
+            log.error("Error al eliminar backup: {}", e.getMessage(), e);
+            response.put("error", "Error al eliminar backup: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        } catch (Exception e) {
+            log.error("Error inesperado: {}", e.getMessage(), e);
+            response.put("error", "Error inesperado: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
     }
 }

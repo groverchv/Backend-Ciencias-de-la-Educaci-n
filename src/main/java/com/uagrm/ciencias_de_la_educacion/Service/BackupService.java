@@ -9,6 +9,10 @@ import java.io.*;
 import java.nio.file.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Stream;
 
 @Service
 @Slf4j
@@ -27,6 +31,9 @@ public class BackupService {
 
     @Value("${backup.directory:./backups}")
     private String backupDirectory;
+    
+    @Value("${backup.retention.days:30}")
+    private int retentionDays;
 
     public BackupService(WebSocketService webSocketService) {
         this.webSocketService = webSocketService;
@@ -43,10 +50,109 @@ public class BackupService {
             String backupPath = createBackup();
             log.info("Backup automático completado exitosamente: {}", backupPath);
             webSocketService.notifyBackupCompleted("Backup automático completado: " + backupPath);
+            
+            // Limpiar backups antiguos
+            cleanOldBackups();
         } catch (Exception e) {
             log.error("Error en backup automático: {}", e.getMessage(), e);
             webSocketService.notifyBackupCompleted("Error en backup automático: " + e.getMessage());
         }
+    }
+    
+    /**
+     * Limpiar backups antiguos según política de retención
+     */
+    public void cleanOldBackups() {
+        try {
+            Path backupDir = Paths.get(backupDirectory);
+            if (!Files.exists(backupDir)) {
+                return;
+            }
+            
+            LocalDateTime cutoffDate = LocalDateTime.now().minusDays(retentionDays);
+            
+            try (Stream<Path> files = Files.list(backupDir)) {
+                files.filter(path -> path.toString().endsWith(".sql"))
+                     .filter(path -> {
+                         try {
+                             return Files.getLastModifiedTime(path)
+                                        .toInstant()
+                                        .isBefore(cutoffDate.atZone(java.time.ZoneId.systemDefault()).toInstant());
+                         } catch (IOException e) {
+                             return false;
+                         }
+                     })
+                     .forEach(path -> {
+                         try {
+                             Files.delete(path);
+                             log.info("Backup antiguo eliminado: {}", path.getFileName());
+                         } catch (IOException e) {
+                             log.error("Error al eliminar backup antiguo: {}", path, e);
+                         }
+                     });
+            }
+        } catch (Exception e) {
+            log.error("Error al limpiar backups antiguos: {}", e.getMessage(), e);
+        }
+    }
+    
+    /**
+     * Listar todos los backups disponibles
+     */
+    public List<BackupInfo> listBackups() throws IOException {
+        List<BackupInfo> backups = new ArrayList<>();
+        Path backupDir = Paths.get(backupDirectory);
+        
+        if (!Files.exists(backupDir)) {
+            log.info("Directorio de backups no existe, creándolo: {}", backupDir.toAbsolutePath());
+            Files.createDirectories(backupDir);
+            return backups;
+        }
+        
+        try (Stream<Path> files = Files.list(backupDir)) {
+            files.filter(path -> path.toString().endsWith(".sql"))
+                 .forEach(path -> {
+                     try {
+                         BackupInfo info = new BackupInfo();
+                         info.setFileName(path.getFileName().toString());
+                         info.setFilePath(path.toString());
+                         info.setSize(Files.size(path));
+                         info.setCreatedDate(Files.getLastModifiedTime(path).toInstant()
+                                 .atZone(java.time.ZoneId.systemDefault())
+                                 .toLocalDateTime());
+                         backups.add(info);
+                     } catch (IOException e) {
+                         log.error("Error al leer información del backup: {}", path, e);
+                     }
+                 });
+        }
+        
+        // Ordenar por fecha descendente (más reciente primero)
+        backups.sort(Comparator.comparing(BackupInfo::getCreatedDate).reversed());
+        
+        return backups;
+    }
+    
+    /**
+     * Clase interna para información de backup
+     */
+    public static class BackupInfo {
+        private String fileName;
+        private String filePath;
+        private long size;
+        private LocalDateTime createdDate;
+        
+        public String getFileName() { return fileName; }
+        public void setFileName(String fileName) { this.fileName = fileName; }
+        
+        public String getFilePath() { return filePath; }
+        public void setFilePath(String filePath) { this.filePath = filePath; }
+        
+        public long getSize() { return size; }
+        public void setSize(long size) { this.size = size; }
+        
+        public LocalDateTime getCreatedDate() { return createdDate; }
+        public void setCreatedDate(LocalDateTime createdDate) { this.createdDate = createdDate; }
     }
 
     /**
