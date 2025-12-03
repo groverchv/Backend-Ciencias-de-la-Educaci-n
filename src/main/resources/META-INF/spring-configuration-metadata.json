@@ -1,0 +1,64 @@
+{
+  "properties": [
+    {
+      "name": "jwt.secret.key",
+      "type": "java.lang.String",
+      "description": "Clave secreta para firmar tokens JWT. Debe ser una cadena larga y segura en formato hexadecimal.",
+      "defaultValue": "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970"
+    },
+    {
+      "name": "jwt.expiration.ms",
+      "type": "java.lang.Long",
+      "description": "Tiempo de expiración del token JWT en milisegundos (1800000 = 30 minutos).",
+      "defaultValue": 1800000
+    },
+    {
+      "name": "jwt.refresh.expiration.ms",
+      "type": "java.lang.Long",
+      "description": "Tiempo de expiración del refresh token en milisegundos (604800000 = 7 días).",
+      "defaultValue": 604800000
+    },
+    {
+      "name": "cors.allowed.origins",
+      "type": "java.lang.String",
+      "description": "Orígenes permitidos para CORS. Use * para permitir todos los orígenes.",
+      "defaultValue": "*"
+    },
+    {
+      "name": "cors.allowed.methods",
+      "type": "java.lang.String",
+      "description": "Métodos HTTP permitidos para CORS (GET, POST, PUT, DELETE, OPTIONS, PATCH).",
+      "defaultValue": "GET,POST,PUT,DELETE,OPTIONS,PATCH"
+    },
+    {
+      "name": "cors.allowed.headers",
+      "type": "java.lang.String",
+      "description": "Encabezados permitidos para CORS. Use * para permitir todos los encabezados.",
+      "defaultValue": "*"
+    },
+    {
+      "name": "cors.exposed.headers",
+      "type": "java.lang.String",
+      "description": "Encabezados expuestos al cliente en respuestas CORS.",
+      "defaultValue": "Authorization"
+    },
+    {
+      "name": "cors.allow.credentials",
+      "type": "java.lang.Boolean",
+      "description": "Permitir credenciales (cookies, headers de autorización) en solicitudes CORS.",
+      "defaultValue": true
+    },
+    {
+      "name": "cors.max.age",
+      "type": "java.lang.Long",
+      "description": "Tiempo máximo en segundos que el navegador cachea la respuesta preflight de CORS.",
+      "defaultValue": 3600
+    },
+    {
+      "name": "backup.directory",
+      "type": "java.lang.String",
+      "description": "Directorio donde se almacenarán los archivos de backup de la base de datos.",
+      "defaultValue": "./backups"
+    }
+  ]
+}

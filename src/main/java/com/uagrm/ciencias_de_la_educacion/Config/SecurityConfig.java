@@ -113,6 +113,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/public/**").permitAll()
                         .requestMatchers("/api/visitas/**").permitAll() // Allow visit tracking for all users
+                        // WebSocket endpoints
+                        .requestMatchers("/ws/**").permitAll()
                         // Menus - Allow GET for public navigation
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/menu/**").permitAll()
                         .requestMatchers("/api/menu/**").authenticated()

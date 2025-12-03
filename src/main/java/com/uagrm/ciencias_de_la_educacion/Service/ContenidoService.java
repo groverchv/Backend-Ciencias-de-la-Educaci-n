@@ -24,6 +24,27 @@ public class ContenidoService {
     private Sub_MenuRepository subMenuRepository;
 
     /**
+     * Obtener todos los contenidos del sistema
+     */
+    @Transactional(readOnly = true)
+    public List<ContenidoListDTO> getAllContenidos() {
+        List<ContenidoEntity> contenidos = contenidoRepository.findAll();
+
+        return contenidos.stream().map(c -> {
+            ContenidoListDTO dto = new ContenidoListDTO();
+            dto.setId(c.getId());
+            dto.setTitulo(c.getTitulo());
+            dto.setOrden(c.getOrden());
+            dto.setEstado(c.getEstado());
+            if (c.getSubMenu() != null) {
+                dto.setSubMenuId(c.getSubMenu().getId());
+            }
+            dto.setBloqueCount(0); // BloqueContenido was removed
+            return dto;
+        }).collect(Collectors.toList());
+    }
+
+    /**
      * Obtener todos los contenidos de un SubMenu
      */
     @Transactional(readOnly = true)

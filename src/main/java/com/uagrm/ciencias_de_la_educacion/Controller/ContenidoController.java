@@ -24,6 +24,16 @@ public class ContenidoController {
     private UsuarioRepository usuarioRepository;
 
     /**
+     * GET /api/contenidos
+     * Obtiene todos los contenidos del sistema
+     */
+    @GetMapping("/contenidos")
+    public ResponseEntity<List<ContenidoListDTO>> getAllContenidos() {
+        List<ContenidoListDTO> contenidos = contenidoService.getAllContenidos();
+        return ResponseEntity.ok(contenidos);
+    }
+
+    /**
      * GET /api/sub_menu/{id}/contenidos
      * Obtiene todos los contenidos de un SubMenu
      */

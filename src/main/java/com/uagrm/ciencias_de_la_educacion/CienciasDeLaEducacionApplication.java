@@ -2,11 +2,13 @@ package com.uagrm.ciencias_de_la_educacion;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestController;
 
 @SpringBootApplication
+@EnableScheduling
 public class CienciasDeLaEducacionApplication {
 
     public static void main(String[] args) {
