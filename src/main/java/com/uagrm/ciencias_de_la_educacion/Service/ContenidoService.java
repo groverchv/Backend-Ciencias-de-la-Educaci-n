@@ -8,10 +8,13 @@ import com.uagrm.ciencias_de_la_educacion.Repository.ContenidoRepository;
 import com.uagrm.ciencias_de_la_educacion.Repository.Sub_MenuRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,6 +25,9 @@ public class ContenidoService {
 
     @Autowired
     private Sub_MenuRepository subMenuRepository;
+    
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
 
     /**
      * Obtener todos los contenidos del sistema
@@ -96,11 +102,12 @@ public class ContenidoService {
     /**
      * Actualizar un contenido (título, estado y contenido HTML)
      * Cuando se publica (estado = true), copia el contenidoHtml a
-     * contenidoPublicado
+     * contenidoPublicado y envía notificación WebSocket
      */
     @Transactional
     public ContenidoEntity updateContenido(Long id, String titulo, Boolean estado, String contenidoHtml) {
         ContenidoEntity contenido = getContenidoById(id);
+        boolean wasPublished = contenido.getEstado() != null && contenido.getEstado();
 
         if (titulo != null) {
             contenido.setTitulo(titulo);
@@ -117,10 +124,41 @@ public class ContenidoService {
             // publicado
             if (estado == true) {
                 contenido.setContenidoPublicado(contenido.getContenidoHtml());
+                
+                // Enviar notificación WebSocket solo si es una nueva publicación (no si ya estaba publicado)
+                if (!wasPublished) {
+                    enviarNotificacionPublicacion(contenido);
+                }
             }
         }
 
         return contenidoRepository.save(contenido);
+    }
+    
+    /**
+     * Enviar notificación WebSocket cuando se publica nuevo contenido
+     */
+    private void enviarNotificacionPublicacion(ContenidoEntity contenido) {
+        try {
+            Map<String, Object> notificacion = new HashMap<>();
+            notificacion.put("contenidoId", contenido.getId());
+            notificacion.put("titulo", contenido.getTitulo());
+            
+            if (contenido.getSubMenu() != null) {
+                notificacion.put("subMenuTitulo", contenido.getSubMenu().getTitulo());
+                notificacion.put("ruta", contenido.getSubMenu().getRuta());
+                
+                if (contenido.getSubMenu().getMenu_id() != null) {
+                    notificacion.put("menuTitulo", contenido.getSubMenu().getMenu_id().getTitulo());
+                }
+            }
+            
+            // Enviar notificación a todos los usuarios conectados
+            messagingTemplate.convertAndSend("/topic/contenido-publicado", notificacion);
+            System.out.println("📢 Notificación de publicación enviada: " + contenido.getTitulo());
+        } catch (Exception e) {
+            System.err.println("❌ Error al enviar notificación de publicación: " + e.getMessage());
+        }
     }
 
     /**
